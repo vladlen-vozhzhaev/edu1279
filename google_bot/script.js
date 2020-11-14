@@ -6,6 +6,7 @@
 // @author       You
 // @match        https://www.google.ru/*
 // @match        https://xn----7sbab5aqcbiddtdj1e1g.xn--p1ai/*
+// @match        https://crushdrummers.ru/*
 // @grant        none
 // ==/UserScript==
 
@@ -13,13 +14,26 @@ function getRandom(min,max){
     return Math.floor(Math.random()*(max-min)+min);
 }
 
-let keywords = ["Гобой","Саксофон","Валторна","Фагот","Флейта","Как звучит флейта","Скрипка"];
+function getCookie(name) {
+  let matches = document.cookie.match(new RegExp(
+    "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+  ));
+  return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+
+let sites = {
+    "xn----7sbab5aqcbiddtdj1e1g.xn--p1ai":["Гобой","Саксофон","Валторна","Фагот","Флейта","Как звучит флейта","Скрипка"],
+    "crushdrummers.ru":["Барабанное шоу","Шоу барабанщиков в Москве","Заказать барабанщиков в Москве"]
+}
+let site = Object.keys(sites)[getRandom(0,Object.keys(sites).length)];
+let keywords = sites[site];
 let keyword = keywords[getRandom(0, keywords.length)];
 let googleInput = document.getElementsByName("q")[0];
 let btnK = document.getElementsByName("btnK")[0];
 let links = document.links;
-if (btnK != undefined){
+if (btnK != undefined){ // Находимся на главной странице поисковика
     let i = 0;
+    document.cookie = "site="+site;
     let timerId = setInterval(()=>{
         googleInput.value += keyword[i++];
         if(i == keyword.length){
@@ -27,12 +41,13 @@ if (btnK != undefined){
             btnK.click();
         }
     },500);
-}else if(location.hostname == "www.google.ru"){
+}else if(location.hostname == "www.google.ru"){ // Страница поисковой выдачи
     let flag = true;
     let numPage = document.getElementsByClassName("YyVfkd")[0].innerText;
+    site = getCookie("site");
     for(let i=0; i<links.length; i++){
         let link = links[i];
-        if(link.href.indexOf("xn----7sbab5aqcbiddtdj1e1g.xn--p1ai") != -1){
+        if(link.href.indexOf(site) != -1){
             flag = false;
             link.removeAttribute('target');
             setTimeout(()=>link.click(), 2000);
